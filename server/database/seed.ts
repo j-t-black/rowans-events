@@ -58,14 +58,17 @@ async function seed() {
   // Create admin user
   const adminUsername = process.env.ADMIN_USERNAME || 'admin'
   const adminPassword = process.env.ADMIN_PASSWORD || 'changeme'
+  const adminDisplayName = process.env.ADMIN_DISPLAY_NAME || 'Admin'
   const passwordHash = await bcrypt.hash(adminPassword, 10)
 
   console.log('Creating admin user...')
   try {
     await db.insert(users).values({
       username: adminUsername,
+      displayName: adminDisplayName,
       passwordHash,
       role: 'admin',
+      isActive: true,
     })
     console.log(`Admin user created: ${adminUsername}`)
   } catch (e) {

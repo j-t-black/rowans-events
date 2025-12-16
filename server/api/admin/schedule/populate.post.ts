@@ -58,6 +58,9 @@ function getDefaultSlotsForDateAndBowl(dateStr: string, bowl: string): Array<{ s
 }
 
 export default defineEventHandler(async (event) => {
+  const session = await getUserSession(event)
+  const userId = session.user?.id
+
   const body = await readBody(event)
   const { bowl, startDate, endDate } = body
 
@@ -121,6 +124,8 @@ export default defineEventHandler(async (event) => {
           startTime: slot.startTime,
           endTime: slot.endTime,
           eventId: defaultEvent.id,
+          createdBy: userId,
+          updatedBy: userId,
         })
 
       created++

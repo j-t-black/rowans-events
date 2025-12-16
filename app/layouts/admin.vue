@@ -4,8 +4,8 @@ const { isDark, initTheme, toggleTheme } = useTheme()
 
 const navItems = [
   { label: 'Schedule', to: '/admin' },
-  { label: 'Time Slots', to: '/admin/time-slots' },
   { label: 'Events', to: '/admin/events' },
+  { label: 'Users', to: '/admin/users' },
 ]
 
 onMounted(() => {

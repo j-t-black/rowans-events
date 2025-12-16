@@ -30,6 +30,8 @@ export const scheduleEntries = sqliteTable('schedule_entries', {
   startTime: text('start_time').notNull(), // "17:00"
   endTime: text('end_time').notNull(), // "20:00"
   eventId: integer('event_id').references(() => events.id),
+  createdBy: integer('created_by').references(() => users.id),
+  updatedBy: integer('updated_by').references(() => users.id),
   createdAt: text('created_at').default('CURRENT_TIMESTAMP'),
   updatedAt: text('updated_at').default('CURRENT_TIMESTAMP'),
 })
@@ -38,8 +40,10 @@ export const scheduleEntries = sqliteTable('schedule_entries', {
 export const users = sqliteTable('users', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   username: text('username').notNull().unique(),
+  displayName: text('display_name'), // Friendly name for display
   passwordHash: text('password_hash').notNull(),
   role: text('role').default('admin'),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
   createdAt: text('created_at').default('CURRENT_TIMESTAMP'),
 })
 

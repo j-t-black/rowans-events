@@ -20,6 +20,14 @@ interface ScheduleEntry {
   endTime: string
   eventId: number | null
   eventName?: string
+  createdBy?: number | null
+  createdByName?: string | null
+  createdByUsername?: string | null
+  updatedBy?: number | null
+  updatedByName?: string | null
+  updatedByUsername?: string | null
+  createdAt?: string | null
+  updatedAt?: string | null
 }
 
 // Week management
@@ -349,6 +357,21 @@ function getMaxSlotsForBowl(bowl: string): number {
   return Math.max(max, 4) // At least 4 rows
 }
 
+// Format creator/updater info for display
+function getCreatorInfo(slot: ScheduleEntry): string {
+  if (!slot.createdBy) return ''
+  const creator = slot.createdByName || slot.createdByUsername || 'Unknown'
+  const date = slot.createdAt ? new Date(slot.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : ''
+  return `Created by ${creator}${date ? ` on ${date}` : ''}`
+}
+
+function getUpdaterInfo(slot: ScheduleEntry): string {
+  if (!slot.updatedBy || slot.updatedBy === slot.createdBy) return ''
+  const updater = slot.updatedByName || slot.updatedByUsername || 'Unknown'
+  const date = slot.updatedAt ? new Date(slot.updatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : ''
+  return `Updated by ${updater}${date ? ` on ${date}` : ''}`
+}
+
 const selectStyle = computed(() => `
   padding: 0.25rem 0.35rem;
   background: ${isDark.value ? '#1a1a1a' : '#ffffff'};
@@ -466,6 +489,7 @@ const smallSelectStyle = computed(() => `
                       padding: '0.25rem',
                       borderRadius: '4px',
                     }"
+                    :title="!isDefaultSlot(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1]) ? [getCreatorInfo(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1] as ScheduleEntry), getUpdaterInfo(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1] as ScheduleEntry)].filter(Boolean).join('\n') : ''"
                   >
                     <!-- Time row: Start - End -->
                     <div style="display: flex; gap: 0.2rem; align-items: center;">
@@ -505,6 +529,13 @@ const smallSelectStyle = computed(() => `
                         class="delete-btn"
                         title="Delete slot"
                       >×</button>
+                    </div>
+                    <!-- Creator info -->
+                    <div
+                      v-if="!isDefaultSlot(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1]) && (getSlotsForDateAndBowl(date, bowl)[rowIdx - 1] as ScheduleEntry).createdBy"
+                      :style="{ fontSize: '0.55rem', color: isDark ? '#555' : '#999', textAlign: 'center', marginTop: '0.1rem' }"
+                    >
+                      {{ (getSlotsForDateAndBowl(date, bowl)[rowIdx - 1] as ScheduleEntry).createdByName || (getSlotsForDateAndBowl(date, bowl)[rowIdx - 1] as ScheduleEntry).createdByUsername }}
                     </div>
                   </div>
                 </template>

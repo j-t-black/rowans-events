@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
     .from(users)
     .where(eq(users.username, username))
 
-  if (!user) {
+  if (!user || !user.isActive) {
     throw createError({
       statusCode: 401,
       message: 'Invalid credentials',
@@ -37,6 +37,7 @@ export default defineEventHandler(async (event) => {
     user: {
       id: user.id,
       username: user.username,
+      displayName: user.displayName || user.username,
       role: user.role,
     },
   })
@@ -45,6 +46,7 @@ export default defineEventHandler(async (event) => {
     user: {
       id: user.id,
       username: user.username,
+      displayName: user.displayName || user.username,
       role: user.role,
     },
   }

@@ -2,6 +2,9 @@ import { db, scheduleEntries } from '~~/server/database/db'
 import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
+  const session = await getUserSession(event)
+  const userId = session.user?.id
+
   const body = await readBody(event)
   const { date, bowl, startTime, endTime, eventId } = body
 
@@ -32,6 +35,7 @@ export default defineEventHandler(async (event) => {
       .set({
         endTime,
         eventId,
+        updatedBy: userId,
         updatedAt: new Date().toISOString(),
       })
       .where(eq(scheduleEntries.id, existing.id))
@@ -47,6 +51,8 @@ export default defineEventHandler(async (event) => {
         startTime,
         endTime,
         eventId,
+        createdBy: userId,
+        updatedBy: userId,
       })
       .returning()
     result = inserted
