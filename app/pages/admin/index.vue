@@ -6,7 +6,7 @@ definePageMeta({
 
 const { isDark } = useTheme()
 
-interface DJ {
+interface Event {
   id: number
   name: string
   isDefault: boolean
@@ -18,8 +18,8 @@ interface ScheduleEntry {
   bowl: string
   startTime: string
   endTime: string
-  djId: number | null
-  djName?: string
+  eventId: number | null
+  eventName?: string
 }
 
 // Week management
@@ -134,13 +134,13 @@ function getDefaultSlotsForDateAndBowl(dateStr: string, bowl: string): Array<{ s
   return weekdayDefaults[bowl] || []
 }
 
-// Fetch DJs
-const { data: djsList, status: djsStatus } = await useFetch<DJ[]>('/api/djs')
+// Fetch Events
+const { data: eventsList, status: eventsStatus } = await useFetch<Event[]>('/api/events')
 
-const isDataReady = computed(() => djsStatus.value === 'success' && djsList.value)
+const isDataReady = computed(() => eventsStatus.value === 'success' && eventsList.value)
 
-const defaultDJId = computed(() =>
-  djsList.value?.find(d => d.isDefault)?.id || djsList.value?.[0]?.id || null
+const defaultEventId = computed(() =>
+  eventsList.value?.find(e => e.isDefault)?.id || eventsList.value?.[0]?.id || null
 )
 
 // Fetch schedule
@@ -187,10 +187,10 @@ function isDefaultSlot(slot: any): slot is { startTime: string; endTime: string;
 }
 
 // Create or update entry
-async function saveEntry(date: string, bowl: string, startTime: string, endTime: string, djId: number | null) {
+async function saveEntry(date: string, bowl: string, startTime: string, endTime: string, eventId: number | null) {
   await $fetch('/api/admin/schedule', {
     method: 'POST',
-    body: { date, bowl, startTime, endTime, djId },
+    body: { date, bowl, startTime, endTime, eventId },
   })
   await refreshSchedule()
 }
@@ -205,26 +205,26 @@ async function deleteEntry(id: number) {
 async function handleTimeChange(date: string, bowl: string, slot: any, field: 'startTime' | 'endTime', value: string) {
   if (isDefaultSlot(slot)) {
     // Create new entry from default
-    const djId = defaultDJId.value
+    const eventId = defaultEventId.value
     const startTime = field === 'startTime' ? value : slot.startTime
     const endTime = field === 'endTime' ? value : slot.endTime
-    await saveEntry(date, bowl, startTime, endTime, djId)
+    await saveEntry(date, bowl, startTime, endTime, eventId)
   } else {
     // Update existing entry
     const startTime = field === 'startTime' ? value : slot.startTime
     const endTime = field === 'endTime' ? value : slot.endTime
-    await saveEntry(date, bowl, startTime, endTime, slot.djId)
+    await saveEntry(date, bowl, startTime, endTime, slot.eventId)
   }
 }
 
-// Handle DJ change
-async function handleDJChange(date: string, bowl: string, slot: any, djId: number | null) {
+// Handle Event change
+async function handleEventChange(date: string, bowl: string, slot: any, eventId: number | null) {
   if (isDefaultSlot(slot)) {
     // Create new entry from default
-    await saveEntry(date, bowl, slot.startTime, slot.endTime, djId)
+    await saveEntry(date, bowl, slot.startTime, slot.endTime, eventId)
   } else {
     // Update existing entry
-    await saveEntry(date, bowl, slot.startTime, slot.endTime, djId)
+    await saveEntry(date, bowl, slot.startTime, slot.endTime, eventId)
   }
 }
 
@@ -247,7 +247,7 @@ async function addSlot(date: string, bowl: string) {
     }
   }
 
-  await saveEntry(date, bowl, startTime, endTime, defaultDJId.value)
+  await saveEntry(date, bowl, startTime, endTime, defaultEventId.value)
 }
 
 // Handle delete - if last entry, reset shows defaults automatically
@@ -309,7 +309,7 @@ async function populateWeek(bowl: string) {
     })
     await refreshSchedule()
     if (result.created > 0) {
-      alert(`Populated ${result.created} slots with default DJ`)
+      alert(`Populated ${result.created} slots with default event`)
     } else {
       alert('All slots already have entries')
     }
@@ -487,16 +487,16 @@ const smallSelectStyle = computed(() => `
                         <option v-for="t in timeOptions" :key="t" :value="t">{{ t }}</option>
                       </select>
                     </div>
-                    <!-- DJ + Delete row -->
+                    <!-- Event + Delete row -->
                     <div style="display: flex; gap: 0.2rem; align-items: center;">
                       <select
-                        :value="isDefaultSlot(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1]) ? defaultDJId : getSlotsForDateAndBowl(date, bowl)[rowIdx - 1].djId"
-                        @change="handleDJChange(date, bowl, getSlotsForDateAndBowl(date, bowl)[rowIdx - 1], parseInt(($event.target as HTMLSelectElement).value))"
+                        :value="isDefaultSlot(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1]) ? defaultEventId : getSlotsForDateAndBowl(date, bowl)[rowIdx - 1].eventId"
+                        @change="handleEventChange(date, bowl, getSlotsForDateAndBowl(date, bowl)[rowIdx - 1], parseInt(($event.target as HTMLSelectElement).value))"
                         :disabled="isWeekLocked(bowl)"
                         :style="selectStyle"
                         style="flex: 1;"
                       >
-                        <option v-for="dj in djsList" :key="dj.id" :value="dj.id">{{ dj.name }}</option>
+                        <option v-for="evt in eventsList" :key="evt.id" :value="evt.id">{{ evt.name }}</option>
                       </select>
                       <button
                         v-if="!isDefaultSlot(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1])"

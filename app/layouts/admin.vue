@@ -5,7 +5,7 @@ const { isDark, initTheme, toggleTheme } = useTheme()
 const navItems = [
   { label: 'Schedule', to: '/admin' },
   { label: 'Time Slots', to: '/admin/time-slots' },
-  { label: 'DJs', to: '/admin/djs' },
+  { label: 'Events', to: '/admin/events' },
 ]
 
 onMounted(() => {
@@ -35,7 +35,7 @@ async function handleLogout() {
     >
       <div style="max-width: 1400px; margin: 0 auto; padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
         <div style="display: flex; align-items: center; gap: 2rem;">
-          <h1 style="font-size: 1.25rem; font-weight: bold; color: #d0232a;">Rowans Rota</h1>
+          <h1 style="font-size: 1.25rem; font-weight: bold; color: #d0232a;">Rowans Events</h1>
           <nav style="display: flex; gap: 1.5rem;">
             <NuxtLink
               v-for="item in navItems"

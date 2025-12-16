@@ -4,27 +4,23 @@ definePageMeta({
   middleware: 'admin',
 })
 
-interface DJ {
+interface Event {
   id: number
   name: string
-  email: string | null
-  instagram: string | null
-  whatsapp: string | null
-  avatar: string | null
+  description: string | null
+  color: string | null
   isActive: boolean
   isDefault: boolean
 }
 
-const { data: djsList, refresh } = await useFetch<DJ[]>('/api/admin/djs')
+const { data: eventsList, refresh } = await useFetch<Event[]>('/api/admin/events')
 
 const showModal = ref(false)
-const editingDJ = ref<DJ | null>(null)
+const editingEvent = ref<Event | null>(null)
 const form = ref({
   name: '',
-  email: '',
-  instagram: '',
-  whatsapp: '',
-  avatar: '',
+  description: '',
+  color: '',
   isActive: true,
   isDefault: false,
 })
@@ -32,22 +28,20 @@ const error = ref('')
 const success = ref('')
 
 function openCreate() {
-  editingDJ.value = null
-  form.value = { name: '', email: '', instagram: '', whatsapp: '', avatar: '', isActive: true, isDefault: false }
+  editingEvent.value = null
+  form.value = { name: '', description: '', color: '', isActive: true, isDefault: false }
   error.value = ''
   showModal.value = true
 }
 
-function openEdit(dj: DJ) {
-  editingDJ.value = dj
+function openEdit(evt: Event) {
+  editingEvent.value = evt
   form.value = {
-    name: dj.name,
-    email: dj.email || '',
-    instagram: dj.instagram || '',
-    whatsapp: dj.whatsapp || '',
-    avatar: dj.avatar || '',
-    isActive: dj.isActive,
-    isDefault: dj.isDefault
+    name: evt.name,
+    description: evt.description || '',
+    color: evt.color || '',
+    isActive: evt.isActive,
+    isDefault: evt.isDefault
   }
   error.value = ''
   showModal.value = true
@@ -55,25 +49,25 @@ function openEdit(dj: DJ) {
 
 function closeModal() {
   showModal.value = false
-  editingDJ.value = null
+  editingEvent.value = null
   error.value = ''
 }
 
 async function handleSave() {
   try {
     error.value = ''
-    if (editingDJ.value) {
-      await $fetch(`/api/admin/djs/${editingDJ.value.id}`, {
+    if (editingEvent.value) {
+      await $fetch(`/api/admin/events/${editingEvent.value.id}`, {
         method: 'PUT',
         body: form.value,
       })
-      success.value = 'DJ updated'
+      success.value = 'Event updated'
     } else {
-      await $fetch('/api/admin/djs', {
+      await $fetch('/api/admin/events', {
         method: 'POST',
         body: form.value,
       })
-      success.value = 'DJ created'
+      success.value = 'Event created'
     }
     showModal.value = false
     await refresh()
@@ -83,12 +77,12 @@ async function handleSave() {
   }
 }
 
-async function handleDelete(dj: DJ) {
-  if (!confirm(`Delete DJ "${dj.name}"?`)) return
+async function handleDelete(evt: Event) {
+  if (!confirm(`Delete event "${evt.name}"?`)) return
 
   try {
-    await $fetch(`/api/admin/djs/${dj.id}`, { method: 'DELETE' })
-    success.value = 'DJ deleted'
+    await $fetch(`/api/admin/events/${evt.id}`, { method: 'DELETE' })
+    success.value = 'Event deleted'
     await refresh()
     setTimeout(() => success.value = '', 3000)
   } catch (err: any) {
@@ -103,8 +97,8 @@ async function handleDelete(dj: DJ) {
   <div>
     <!-- Header -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-      <h2 style="font-size: 1.25rem; font-weight: bold;">DJs</h2>
-      <button class="btn-primary" @click="openCreate">Add DJ</button>
+      <h2 style="font-size: 1.25rem; font-weight: bold;">Events</h2>
+      <button class="btn-primary" @click="openCreate">Add Event</button>
     </div>
 
     <!-- Success/Error Messages -->
@@ -121,31 +115,36 @@ async function handleDelete(dj: DJ) {
         <thead>
           <tr style="border-bottom: 1px solid #333;">
             <th style="padding: 0.75rem; text-align: left; font-size: 0.875rem; font-weight: 500; color: #888;">Name</th>
+            <th style="padding: 0.75rem; text-align: left; font-size: 0.875rem; font-weight: 500; color: #888;">Description</th>
             <th style="padding: 0.75rem; text-align: left; font-size: 0.875rem; font-weight: 500; color: #888;">Status</th>
             <th style="padding: 0.75rem; text-align: left; font-size: 0.875rem; font-weight: 500; color: #888;">Default</th>
             <th style="padding: 0.75rem; text-align: right; font-size: 0.875rem; font-weight: 500; color: #888;">Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="dj in djsList" :key="dj.id" style="border-bottom: 1px solid #222;">
-            <td style="padding: 0.75rem; font-size: 0.875rem;">{{ dj.name }}</td>
+          <tr v-for="evt in eventsList" :key="evt.id" style="border-bottom: 1px solid #222;">
             <td style="padding: 0.75rem; font-size: 0.875rem;">
-              <span v-if="dj.isActive" style="color: #4ade80;">Active</span>
+              <span v-if="evt.color" :style="{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '2px', backgroundColor: evt.color, marginRight: '0.5rem' }"></span>
+              {{ evt.name }}
+            </td>
+            <td style="padding: 0.75rem; font-size: 0.875rem; color: #888;">{{ evt.description || '-' }}</td>
+            <td style="padding: 0.75rem; font-size: 0.875rem;">
+              <span v-if="evt.isActive" style="color: #4ade80;">Active</span>
               <span v-else style="color: #666;">Inactive</span>
             </td>
             <td style="padding: 0.75rem; font-size: 0.875rem;">
-              <span v-if="dj.isDefault" style="color: #d0232a;">Yes</span>
+              <span v-if="evt.isDefault" style="color: #d0232a;">Yes</span>
               <span v-else style="color: #666;">No</span>
             </td>
             <td style="padding: 0.75rem; text-align: right;">
               <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-                <button class="btn-secondary" @click="openEdit(dj)">Edit</button>
-                <button class="btn-danger" @click="handleDelete(dj)">Delete</button>
+                <button class="btn-secondary" @click="openEdit(evt)">Edit</button>
+                <button class="btn-danger" @click="handleDelete(evt)">Delete</button>
               </div>
             </td>
           </tr>
-          <tr v-if="!djsList?.length">
-            <td colspan="4" style="padding: 2rem; text-align: center; color: #666;">No DJs found</td>
+          <tr v-if="!eventsList?.length">
+            <td colspan="5" style="padding: 2rem; text-align: center; color: #666;">No events found</td>
           </tr>
         </tbody>
       </table>
@@ -155,7 +154,7 @@ async function handleDelete(dj: DJ) {
     <div v-if="showModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 50;">
       <div style="background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 1.5rem; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
         <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1.5rem;">
-          {{ editingDJ ? 'Edit' : 'Add' }} DJ
+          {{ editingEvent ? 'Edit' : 'Add' }} Event
         </h3>
 
         <div v-if="error" style="padding: 0.75rem; background: #3a1a1a; border: 1px solid #5a2a2a; color: #f87171; border-radius: 4px; margin-bottom: 1rem;">
@@ -165,27 +164,20 @@ async function handleDelete(dj: DJ) {
         <form @submit.prevent="handleSave">
           <div class="form-group">
             <label class="form-label">Name *</label>
-            <input v-model="form.name" placeholder="DJ Name" required class="form-input" />
+            <input v-model="form.name" placeholder="Event Name" required class="form-input" />
           </div>
 
           <div class="form-group">
-            <label class="form-label">Email</label>
-            <input v-model="form.email" type="email" placeholder="dj@example.com" class="form-input" />
+            <label class="form-label">Description</label>
+            <input v-model="form.description" placeholder="Brief description" class="form-input" />
           </div>
 
           <div class="form-group">
-            <label class="form-label">Instagram</label>
-            <input v-model="form.instagram" placeholder="@handle (without @)" class="form-input" />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">WhatsApp</label>
-            <input v-model="form.whatsapp" placeholder="+44 7123 456789" class="form-input" />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Avatar URL</label>
-            <input v-model="form.avatar" placeholder="https://example.com/avatar.jpg" class="form-input" />
+            <label class="form-label">Color</label>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input v-model="form.color" type="color" style="width: 40px; height: 32px; padding: 0; border: 1px solid #333; border-radius: 4px; cursor: pointer;" />
+              <input v-model="form.color" placeholder="#d0232a" class="form-input" style="flex: 1;" />
+            </div>
           </div>
 
           <div class="form-group">

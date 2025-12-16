@@ -12,7 +12,7 @@ interface ScheduleEntry {
   bowl: string
   startTime: string
   endTime: string
-  dj: string | null
+  event: string | null
 }
 
 // Smoke trail effect
@@ -73,7 +73,7 @@ function initSmokeTrail() {
 
     // Apply red glow to text elements near smoke
     const glowRadius = 80
-    const textElements = document.querySelectorAll('.slot-dj, .slot-time, .day-name, .day-date, .bowl-title, .week-title, .logo, .mobile-slot-dj, .mobile-slot-time, .mobile-day-name, .mobile-bowl-title')
+    const textElements = document.querySelectorAll('.slot-event, .slot-time, .day-name, .day-date, .bowl-title, .week-title, .logo, .mobile-slot-event, .mobile-slot-time, .mobile-day-name, .mobile-bowl-title')
     textElements.forEach(el => {
       const rect = el.getBoundingClientRect()
       const centerX = rect.left + rect.width / 2
@@ -329,7 +329,7 @@ function exportBowl(bowl: string) {
     <!-- Header -->
     <header class="header" :style="{ backgroundColor: isDark ? '#1a1a1a' : '#ffffff' }">
       <div class="header-inner">
-        <h1 class="logo" :style="{ color: isDark ? '#f0f0f0' : '#1a1a1a' }">Rowans DJs</h1>
+        <h1 class="logo" :style="{ color: isDark ? '#f0f0f0' : '#1a1a1a' }">Rowans Events</h1>
         <div style="display: flex; align-items: center; gap: 0.75rem;">
           <!-- Format Toggle -->
           <div class="format-toggle" :style="{ background: isDark ? '#1a1a1a' : '#e5e5e5' }">
@@ -397,7 +397,7 @@ function exportBowl(bowl: string) {
               :style="{ background: isDark ? '#1a1a1a' : '#ffffff', borderColor: isDark ? '#333' : '#ddd' }"
             >
               <div class="mobile-slot-time">{{ entry.startTime }}-{{ entry.endTime }}</div>
-              <div class="mobile-slot-dj">{{ entry.dj || 'TBA' }}</div>
+              <div class="mobile-slot-event">{{ entry.event || 'TBA' }}</div>
             </div>
             <!-- Show message if no slots -->
             <div
@@ -431,7 +431,7 @@ function exportBowl(bowl: string) {
 
         <!-- Week Title -->
         <h2 class="week-title">
-          Rowans DJs : Week Starting {{ weekStartFormatted }}
+          Rowans Events : Week Starting {{ weekStartFormatted }}
         </h2>
 
         <!-- Schedule Grid -->
@@ -460,8 +460,8 @@ function exportBowl(bowl: string) {
                 <div class="slot-time">
                   {{ getEntriesForDateAndBowl(date, bowl)[rowIdx - 1].startTime }}-{{ getEntriesForDateAndBowl(date, bowl)[rowIdx - 1].endTime }}
                 </div>
-                <div class="slot-dj">
-                  {{ getEntriesForDateAndBowl(date, bowl)[rowIdx - 1].dj || 'TBA' }}
+                <div class="slot-event">
+                  {{ getEntriesForDateAndBowl(date, bowl)[rowIdx - 1].event || 'TBA' }}
                 </div>
               </template>
               <template v-else>
@@ -702,13 +702,13 @@ function exportBowl(bowl: string) {
   color: #888;
 }
 
-.slot-dj {
+.slot-event {
   font-size: 1rem;
   font-weight: 600;
   transition: all 0.2s ease;
 }
 
-.slot-cell:hover .slot-dj {
+.slot-cell:hover .slot-event {
   color: #fff;
   text-shadow: 0 0 8px rgba(208, 35, 42, 0.3);
 }
@@ -909,7 +909,7 @@ function exportBowl(bowl: string) {
   color: #888;
 }
 
-.mobile-slot-dj {
+.mobile-slot-event {
   font-size: 1.1rem;
   font-weight: 600;
 }
