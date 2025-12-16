@@ -1,4 +1,4 @@
-import { db, scheduleEntries, djs } from '~~/server/database/db'
+import { db, scheduleEntries, events } from '~~/server/database/db'
 import { eq, and } from 'drizzle-orm'
 
 // Default time slots by day and bowl - now as {startTime, endTime} tuples
@@ -68,16 +68,16 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Fetch default DJ
-  const [defaultDJ] = await db
+  // Fetch default event
+  const [defaultEvent] = await db
     .select()
-    .from(djs)
-    .where(eq(djs.isDefault, true))
+    .from(events)
+    .where(eq(events.isDefault, true))
 
-  if (!defaultDJ) {
+  if (!defaultEvent) {
     throw createError({
       statusCode: 400,
-      message: 'No default DJ configured',
+      message: 'No default event configured',
     })
   }
 
@@ -120,7 +120,7 @@ export default defineEventHandler(async (event) => {
           bowl,
           startTime: slot.startTime,
           endTime: slot.endTime,
-          djId: defaultDJ.id,
+          eventId: defaultEvent.id,
         })
 
       created++

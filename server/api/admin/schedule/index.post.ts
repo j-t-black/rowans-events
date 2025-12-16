@@ -3,7 +3,7 @@ import { eq, and } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { date, bowl, startTime, endTime, djId } = body
+  const { date, bowl, startTime, endTime, eventId } = body
 
   if (!date || !bowl || !startTime || !endTime) {
     throw createError({
@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
       .update(scheduleEntries)
       .set({
         endTime,
-        djId,
+        eventId,
         updatedAt: new Date().toISOString(),
       })
       .where(eq(scheduleEntries.id, existing.id))
@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
         bowl,
         startTime,
         endTime,
-        djId,
+        eventId,
       })
       .returning()
     result = inserted

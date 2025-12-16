@@ -1,23 +1,21 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
 
-// Time slots available for selection
+// Time slots available for selection (legacy - may be removed)
 export const timeSlots = sqliteTable('time_slots', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  time: text('time').notNull().unique(), // e.g., "22:00"
+  time: text('time').notNull().unique(),
   displayOrder: integer('display_order').default(0),
   isDefault: integer('is_default', { mode: 'boolean' }).default(false),
   createdAt: text('created_at').default('CURRENT_TIMESTAMP'),
   updatedAt: text('updated_at').default('CURRENT_TIMESTAMP'),
 })
 
-// DJs available for selection
-export const djs = sqliteTable('djs', {
+// Events available for selection
+export const events = sqliteTable('events', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull().unique(),
-  email: text('email'),
-  instagram: text('instagram'), // Instagram handle (without @)
-  whatsapp: text('whatsapp'),   // WhatsApp number
-  avatar: text('avatar'),       // URL to avatar image
+  description: text('description'),
+  color: text('color'), // Optional color for display
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   isDefault: integer('is_default', { mode: 'boolean' }).default(false),
   createdAt: text('created_at').default('CURRENT_TIMESTAMP'),
@@ -31,7 +29,7 @@ export const scheduleEntries = sqliteTable('schedule_entries', {
   bowl: text('bowl').notNull(), // "upper" or "lower"
   startTime: text('start_time').notNull(), // "17:00"
   endTime: text('end_time').notNull(), // "20:00"
-  djId: integer('dj_id').references(() => djs.id),
+  eventId: integer('event_id').references(() => events.id),
   createdAt: text('created_at').default('CURRENT_TIMESTAMP'),
   updatedAt: text('updated_at').default('CURRENT_TIMESTAMP'),
 })
@@ -54,8 +52,8 @@ export const settings = sqliteTable('settings', {
 // Type exports for TypeScript
 export type TimeSlot = typeof timeSlots.$inferSelect
 export type NewTimeSlot = typeof timeSlots.$inferInsert
-export type DJ = typeof djs.$inferSelect
-export type NewDJ = typeof djs.$inferInsert
+export type Event = typeof events.$inferSelect
+export type NewEvent = typeof events.$inferInsert
 export type ScheduleEntry = typeof scheduleEntries.$inferSelect
 export type NewScheduleEntry = typeof scheduleEntries.$inferInsert
 export type User = typeof users.$inferSelect

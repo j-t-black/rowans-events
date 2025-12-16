@@ -1,4 +1,4 @@
-import { db, scheduleEntries, djs } from '~~/server/database/db'
+import { db, scheduleEntries, events } from '~~/server/database/db'
 import { eq, and, gte, lte, asc } from 'drizzle-orm'
 import PDFDocument from 'pdfkit'
 
@@ -27,10 +27,10 @@ export default defineEventHandler(async (event) => {
       date: scheduleEntries.date,
       startTime: scheduleEntries.startTime,
       endTime: scheduleEntries.endTime,
-      dj: djs.name,
+      eventName: events.name,
     })
     .from(scheduleEntries)
-    .leftJoin(djs, eq(scheduleEntries.djId, djs.id))
+    .leftJoin(events, eq(scheduleEntries.eventId, events.id))
     .where(
       and(
         eq(scheduleEntries.bowl, bowl),
@@ -40,11 +40,11 @@ export default defineEventHandler(async (event) => {
     )
     .orderBy(asc(scheduleEntries.date), asc(scheduleEntries.startTime))
 
-  // Fetch default DJ
-  const [defaultDJ] = await db
-    .select({ name: djs.name })
-    .from(djs)
-    .where(eq(djs.isDefault, true))
+  // Fetch default event
+  const [defaultEvent] = await db
+    .select({ name: events.name })
+    .from(events)
+    .where(eq(events.isDefault, true))
 
   // Group entries by date
   const byDate = new Map<string, typeof entries>()
@@ -110,7 +110,7 @@ export default defineEventHandler(async (event) => {
   doc.font('Helvetica')
 
   // Title (light mode)
-  doc.fontSize(18).fillColor('#d0232a').text(`ROWANS ROTA - ${bowl.toUpperCase()} BOWL`, marginLeft, marginTop, {
+  doc.fontSize(18).fillColor('#d0232a').text(`ROWANS EVENTS - ${bowl.toUpperCase()} BOWL`, marginLeft, marginTop, {
     align: 'center',
     width: usableWidth,
   })
@@ -150,15 +150,15 @@ export default defineEventHandler(async (event) => {
 
       if (entry) {
         const time = `${entry.startTime}-${entry.endTime}`
-        const dj = entry.dj || defaultDJ?.name || 'TBA'
+        const eventName = entry.eventName || defaultEvent?.name || 'TBA'
 
         // Time in muted gray
         doc.fillColor('#888888').fontSize(8)
         doc.text(time, x + 5, rowTop + 8, { width: colWidth - 10, align: 'center' })
 
-        // DJ name in dark/black
+        // Event name in dark/black
         doc.fillColor('#222222').fontSize(10)
-        doc.text(dj, x + 5, rowTop + 22, { width: colWidth - 10, align: 'center' })
+        doc.text(eventName, x + 5, rowTop + 22, { width: colWidth - 10, align: 'center' })
       } else {
         doc.fillColor('#cccccc').fontSize(10)
         doc.text('-', x + 5, rowTop + 15, { width: colWidth - 10, align: 'center' })

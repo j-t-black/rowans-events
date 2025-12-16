@@ -1,4 +1,4 @@
-import { db, scheduleEntries, djs } from '~~/server/database/db'
+import { db, scheduleEntries, events } from '~~/server/database/db'
 import { eq, and, gte, lte, asc } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
@@ -25,11 +25,11 @@ export default defineEventHandler(async (event) => {
       bowl: scheduleEntries.bowl,
       startTime: scheduleEntries.startTime,
       endTime: scheduleEntries.endTime,
-      djId: scheduleEntries.djId,
-      djName: djs.name,
+      eventId: scheduleEntries.eventId,
+      eventName: events.name,
     })
     .from(scheduleEntries)
-    .leftJoin(djs, eq(scheduleEntries.djId, djs.id))
+    .leftJoin(events, eq(scheduleEntries.eventId, events.id))
     .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(asc(scheduleEntries.date), asc(scheduleEntries.startTime))
 

@@ -1,12 +1,12 @@
 import 'dotenv/config'
 import { drizzle } from 'drizzle-orm/libsql'
 import { createClient } from '@libsql/client'
-import { timeSlots, djs, users, settings } from './schema'
+import { timeSlots, events, users, settings } from './schema'
 import bcrypt from 'bcryptjs'
 
 // Create client for seeding
 const client = createClient({
-  url: process.env.TURSO_DATABASE_URL || 'libsql://rowans-djs-j-t-black.aws-eu-west-1.turso.io',
+  url: process.env.TURSO_DATABASE_URL || '',
   authToken: process.env.TURSO_AUTH_TOKEN,
 })
 
@@ -15,30 +15,21 @@ const db = drizzle(client)
 async function seed() {
   console.log('Seeding database...')
 
-  // Default time slots - all ranges
+  // Default time slots - all ranges (legacy, kept for reference)
   const defaultTimeSlots = [
-    // Weekday ranges (Wed-Fri)
-    { time: '17:00-20:00', displayOrder: 1 },  // Lower Bowl slot 1
-    { time: '18:00-20:30', displayOrder: 2 },  // Upper Bowl slot 1
-    { time: '20:00-22:00', displayOrder: 3 },  // Lower Bowl slot 2
-    { time: '20:30-22:30', displayOrder: 4 },  // Upper Bowl slot 2
-    { time: '22:00-00:00', displayOrder: 5 },  // Lower Bowl slot 3
-    { time: '22:30-00:30', displayOrder: 6 },  // Upper Bowl slot 3
-    { time: '00:00-02:30', displayOrder: 7 },  // Lower/Upper Bowl slot 4
-    { time: '00:30-02:30', displayOrder: 8 },  // Upper Bowl slot 4
-    // Saturday ranges - Lower Bowl (5 slots: 12-18, 18-20, 20-22, 22-00, 00-02:30)
-    { time: '12:00-18:00', displayOrder: 9 },  // Lower Bowl slot 1
-    { time: '18:00-20:00', displayOrder: 10 }, // Lower/Upper Bowl slot 2/3
-    { time: '20:00-22:00', displayOrder: 11 }, // Lower/Upper Bowl slot 3/4 (shared with weekday)
-    // Saturday ranges - Upper Bowl
-    { time: '14:00-16:00', displayOrder: 13 }, // Upper Bowl slot 1
-    { time: '16:00-18:00', displayOrder: 14 }, // Upper Bowl slot 2
-    { time: '22:00-00:00', displayOrder: 15 }, // Upper Bowl slot 5 (shared with weekday)
-    { time: '00:00-02:30', displayOrder: 16 }, // Upper Bowl slot 6 (shared)
-    // Sunday ranges (mostly shared with Saturday)
-    // Lower: 12:00-18:00, 18:00-20:00, 20:00-22:00, 22:00-00:30
-    // Upper: 14:00-16:00, 16:00-18:00
-    { time: '22:00-00:30', displayOrder: 17 }, // Sunday Lower Bowl slot 4 (unique)
+    { time: '17:00-20:00', displayOrder: 1 },
+    { time: '18:00-20:30', displayOrder: 2 },
+    { time: '20:00-22:00', displayOrder: 3 },
+    { time: '20:30-22:30', displayOrder: 4 },
+    { time: '22:00-00:00', displayOrder: 5 },
+    { time: '22:30-00:30', displayOrder: 6 },
+    { time: '00:00-02:30', displayOrder: 7 },
+    { time: '00:30-02:30', displayOrder: 8 },
+    { time: '12:00-18:00', displayOrder: 9 },
+    { time: '18:00-20:00', displayOrder: 10 },
+    { time: '14:00-16:00', displayOrder: 13 },
+    { time: '16:00-18:00', displayOrder: 14 },
+    { time: '22:00-00:30', displayOrder: 17 },
   ]
 
   console.log('Inserting time slots...')
@@ -50,15 +41,15 @@ async function seed() {
     }
   }
 
-  // Sample DJs (optional)
-  const sampleDJs = [
+  // Sample events
+  const sampleEvents = [
     { name: 'TBA', isActive: true, isDefault: true },
   ]
 
-  console.log('Inserting sample DJs...')
-  for (const dj of sampleDJs) {
+  console.log('Inserting sample events...')
+  for (const evt of sampleEvents) {
     try {
-      await db.insert(djs).values(dj)
+      await db.insert(events).values(evt)
     } catch (e) {
       // Ignore duplicates
     }
@@ -84,7 +75,7 @@ async function seed() {
   // Default settings
   const defaultSettings = [
     { key: 'default_time_slot_id', value: '' },
-    { key: 'default_dj_id', value: '' },
+    { key: 'default_event_id', value: '' },
   ]
 
   console.log('Inserting default settings...')

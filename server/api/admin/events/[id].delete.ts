@@ -1,4 +1,4 @@
-import { db, djs } from '~~/server/database/db'
+import { db, events } from '~~/server/database/db'
 import { eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
@@ -12,14 +12,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const [result] = await db
-    .delete(djs)
-    .where(eq(djs.id, id))
+    .delete(events)
+    .where(eq(events.id, id))
     .returning()
 
   if (!result) {
     throw createError({
       statusCode: 404,
-      message: 'DJ not found',
+      message: 'Event not found',
     })
   }
 

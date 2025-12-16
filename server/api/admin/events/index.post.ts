@@ -1,8 +1,8 @@
-import { db, djs } from '~~/server/database/db'
+import { db, events } from '~~/server/database/db'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const { name, email, instagram, whatsapp, avatar, isActive, isDefault } = body
+  const { name, description, color, isActive, isDefault } = body
 
   if (!name) {
     throw createError({
@@ -12,13 +12,11 @@ export default defineEventHandler(async (event) => {
   }
 
   const [result] = await db
-    .insert(djs)
+    .insert(events)
     .values({
       name,
-      email: email || null,
-      instagram: instagram || null,
-      whatsapp: whatsapp || null,
-      avatar: avatar || null,
+      description: description || null,
+      color: color || null,
       isActive: isActive ?? true,
       isDefault: isDefault ?? false,
     })

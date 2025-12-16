@@ -1,4 +1,4 @@
-import { db, djs } from '~~/server/database/db'
+import { db, events } from '~~/server/database/db'
 import { eq } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
@@ -13,24 +13,22 @@ export default defineEventHandler(async (event) => {
   }
 
   const [result] = await db
-    .update(djs)
+    .update(events)
     .set({
       name: body.name,
-      email: body.email || null,
-      instagram: body.instagram || null,
-      whatsapp: body.whatsapp || null,
-      avatar: body.avatar || null,
+      description: body.description || null,
+      color: body.color || null,
       isActive: body.isActive,
       isDefault: body.isDefault,
       updatedAt: new Date().toISOString(),
     })
-    .where(eq(djs.id, id))
+    .where(eq(events.id, id))
     .returning()
 
   if (!result) {
     throw createError({
       statusCode: 404,
-      message: 'DJ not found',
+      message: 'Event not found',
     })
   }
 
