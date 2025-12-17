@@ -43,6 +43,7 @@ export default defineEventHandler(async (event) => {
     result = updated
   } else {
     // Create new entry
+    const now = new Date().toISOString()
     const [inserted] = await db
       .insert(scheduleEntries)
       .values({
@@ -53,6 +54,8 @@ export default defineEventHandler(async (event) => {
         eventId,
         createdBy: userId,
         updatedBy: userId,
+        createdAt: now,
+        updatedAt: now,
       })
       .returning()
     result = inserted

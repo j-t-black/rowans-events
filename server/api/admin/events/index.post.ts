@@ -14,6 +14,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  const now = new Date().toISOString()
   const [result] = await db
     .insert(events)
     .values({
@@ -24,6 +25,8 @@ export default defineEventHandler(async (event) => {
       isDefault: isDefault ?? false,
       createdBy: userId,
       updatedBy: userId,
+      createdAt: now,
+      updatedAt: now,
     })
     .returning()
 

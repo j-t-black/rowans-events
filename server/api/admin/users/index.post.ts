@@ -23,6 +23,7 @@ export default defineEventHandler(async (event) => {
       passwordHash,
       role: role || 'admin',
       isActive: isActive ?? true,
+      createdAt: new Date().toISOString(),
     })
     .returning({
       id: users.id,
