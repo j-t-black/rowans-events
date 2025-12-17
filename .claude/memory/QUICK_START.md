@@ -1,51 +1,41 @@
-# Quick Start for New Session
+# Rowans Events - Quick Start
 
-## First Steps
+## Development
 ```bash
-cd /Users/jtblack/dev/rowans-rota-v2
-npm run dev
+npm run dev        # http://localhost:3001/
+npm run db:studio  # Drizzle Studio for DB management
 ```
-App runs at http://localhost:3001/
 
-## Project Status: FUNCTIONAL
-Full-stack DJ schedule app with flexible time slots, cloud database, and PDF/JPG export.
+**Login:** pickled / pepper
 
-## Login
-- URL: http://localhost:3001/login
-- Username: `pickled`
-- Password: `pepper`
+## What is this?
+Full-stack event schedule app with flexible time slots, cloud database, and PDF/JPG export.
 
-## URLs
+## Key URLs (local)
 - Public schedule: http://localhost:3001/
-- Admin dashboard: http://localhost:3001/admin
-- DJs CRUD: http://localhost:3001/admin/djs
+- Admin login: http://localhost:3001/login
+- Schedule editor: http://localhost:3001/admin
+- Events CRUD: http://localhost:3001/admin/events
+- Users CRUD: http://localhost:3001/admin/users
 
-## Flexible Time Slots
-
-Time slots are stored directly with `start_time` and `end_time` fields. Each date is independent.
-
-**Admin UI features:**
-- Add/remove slots freely for any date
-- Time dropdowns: 30-minute increments from 12:00 to 02:30
-- Slots auto-sort by start time
-- Delete all slots → shows template defaults
-
-**Default templates (used when no entries exist):**
-
-| Day | Lower Bowl | Upper Bowl |
-|-----|------------|------------|
-| Wed-Fri | 17:00-20:00, 20:00-22:00, 22:00-00:00, 00:00-02:30 | 18:00-20:30, 20:30-22:30, 22:30-00:30, 00:30-02:30 |
-| Saturday | 12:00-18:00, 18:00-20:00, 20:00-22:00, 22:00-00:00, 00:00-02:30 | 14:00-16:00, 16:00-18:00, 18:00-20:00, 20:00-22:00, 22:00-00:00, 00:00-02:30 |
-| Sunday | 12:00-18:00, 18:00-20:00, 20:00-22:00, 22:00-00:30 | 14:00-16:00, 16:00-18:00 |
+## Tech Stack
+- Nuxt 4.2 + Vue 3.5
+- Nuxt UI 4 (with custom dark theme)
+- Drizzle ORM + Turso (cloud SQLite)
+- nuxt-auth-utils for sessions
+- PDFKit for PDF export
+- html2canvas for JPG export
 
 ## Database
 - **Production:** Turso Cloud (libSQL)
-- Tables: djs, schedule_entries, users, settings
-- Schedule entries have: date, bowl, start_time, end_time, dj_id
+- Tables: events, schedule_entries, users, settings
+- Schedule entries have: date, bowl, start_time, end_time, event_id, created_by, updated_by
 
 ## Key Files
 ```
 app/pages/admin/index.vue    - Schedule editor (add/edit/delete slots)
+app/pages/admin/events.vue   - Events management
+app/pages/admin/users.vue    - Users management
 app/pages/index.vue          - Public view (desktop grid + mobile swipe)
 server/database/schema.ts    - Drizzle schema
 server/database/db.ts        - Turso connection
@@ -59,15 +49,6 @@ npm run dev        # Start dev server
 npm run db:push    # Push schema to Turso
 npm run db:seed    # Seed initial data
 npm run db:studio  # Open Drizzle Studio
-```
-
-## Environment Variables
-```
-TURSO_DATABASE_URL=libsql://...
-TURSO_AUTH_TOKEN=...
-NUXT_SESSION_PASSWORD=...
-ADMIN_USERNAME=...
-ADMIN_PASSWORD=...
 ```
 
 ## Known Issues

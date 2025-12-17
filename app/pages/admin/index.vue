@@ -86,62 +86,6 @@ const timeOptions = [
   '00:00', '00:30', '01:00', '01:30', '02:00', '02:30',
 ]
 
-// Default slots by day and bowl
-const weekdayDefaults: Record<string, Array<{ startTime: string; endTime: string }>> = {
-  lower: [
-    { startTime: '17:00', endTime: '20:00' },
-    { startTime: '20:00', endTime: '22:00' },
-    { startTime: '22:00', endTime: '00:00' },
-    { startTime: '00:00', endTime: '02:30' },
-  ],
-  upper: [
-    { startTime: '18:00', endTime: '20:30' },
-    { startTime: '20:30', endTime: '22:30' },
-    { startTime: '22:30', endTime: '00:30' },
-    { startTime: '00:30', endTime: '02:30' },
-  ],
-}
-
-const saturdayDefaults: Record<string, Array<{ startTime: string; endTime: string }>> = {
-  lower: [
-    { startTime: '12:00', endTime: '18:00' },
-    { startTime: '18:00', endTime: '20:00' },
-    { startTime: '20:00', endTime: '22:00' },
-    { startTime: '22:00', endTime: '00:00' },
-    { startTime: '00:00', endTime: '02:30' },
-  ],
-  upper: [
-    { startTime: '14:00', endTime: '16:00' },
-    { startTime: '16:00', endTime: '18:00' },
-    { startTime: '18:00', endTime: '20:00' },
-    { startTime: '20:00', endTime: '22:00' },
-    { startTime: '22:00', endTime: '00:00' },
-    { startTime: '00:00', endTime: '02:30' },
-  ],
-}
-
-const sundayDefaults: Record<string, Array<{ startTime: string; endTime: string }>> = {
-  lower: [
-    { startTime: '12:00', endTime: '18:00' },
-    { startTime: '18:00', endTime: '20:00' },
-    { startTime: '20:00', endTime: '22:00' },
-    { startTime: '22:00', endTime: '00:30' },
-  ],
-  upper: [
-    { startTime: '14:00', endTime: '16:00' },
-    { startTime: '16:00', endTime: '18:00' },
-  ],
-}
-
-function getDefaultSlotsForDateAndBowl(dateStr: string, bowl: string): Array<{ startTime: string; endTime: string }> {
-  const date = new Date(dateStr)
-  const dayOfWeek = date.getDay()
-  if (dayOfWeek >= 3 && dayOfWeek <= 5) return weekdayDefaults[bowl] || []
-  if (dayOfWeek === 6) return saturdayDefaults[bowl] || []
-  if (dayOfWeek === 0) return sundayDefaults[bowl] || []
-  return weekdayDefaults[bowl] || []
-}
-
 // Fetch Events
 const { data: eventsList, status: eventsStatus } = await useFetch<Event[]>('/api/events')
 
@@ -181,17 +125,9 @@ function timeToMinutes(time: string): number {
   return hours * 60 + mins
 }
 
-// Get slots to display - actual entries or defaults if none exist
-function getSlotsForDateAndBowl(date: string, bowl: string): Array<ScheduleEntry | { startTime: string; endTime: string; isDefault: true }> {
-  const entries = getEntriesForDateAndBowl(date, bowl)
-  if (entries.length > 0) return entries
-  // Return defaults with marker
-  return getDefaultSlotsForDateAndBowl(date, bowl).map(d => ({ ...d, isDefault: true as const }))
-}
-
-// Check if slot is a default (not saved)
-function isDefaultSlot(slot: any): slot is { startTime: string; endTime: string; isDefault: true } {
-  return slot.isDefault === true
+// Get slots to display - only actual entries
+function getSlotsForDateAndBowl(date: string, bowl: string): ScheduleEntry[] {
+  return getEntriesForDateAndBowl(date, bowl)
 }
 
 // Create or update entry
@@ -209,31 +145,16 @@ async function deleteEntry(id: number) {
   await refreshSchedule()
 }
 
-// Handle time change - creates entry if default, updates if existing
-async function handleTimeChange(date: string, bowl: string, slot: any, field: 'startTime' | 'endTime', value: string) {
-  if (isDefaultSlot(slot)) {
-    // Create new entry from default
-    const eventId = defaultEventId.value
-    const startTime = field === 'startTime' ? value : slot.startTime
-    const endTime = field === 'endTime' ? value : slot.endTime
-    await saveEntry(date, bowl, startTime, endTime, eventId)
-  } else {
-    // Update existing entry
-    const startTime = field === 'startTime' ? value : slot.startTime
-    const endTime = field === 'endTime' ? value : slot.endTime
-    await saveEntry(date, bowl, startTime, endTime, slot.eventId)
-  }
+// Handle time change
+async function handleTimeChange(date: string, bowl: string, slot: ScheduleEntry, field: 'startTime' | 'endTime', value: string) {
+  const startTime = field === 'startTime' ? value : slot.startTime
+  const endTime = field === 'endTime' ? value : slot.endTime
+  await saveEntry(date, bowl, startTime, endTime, slot.eventId)
 }
 
 // Handle Event change
-async function handleEventChange(date: string, bowl: string, slot: any, eventId: number | null) {
-  if (isDefaultSlot(slot)) {
-    // Create new entry from default
-    await saveEntry(date, bowl, slot.startTime, slot.endTime, eventId)
-  } else {
-    // Update existing entry
-    await saveEntry(date, bowl, slot.startTime, slot.endTime, eventId)
-  }
+async function handleEventChange(date: string, bowl: string, slot: ScheduleEntry, eventId: number | null) {
+  await saveEntry(date, bowl, slot.startTime, slot.endTime, eventId)
 }
 
 // Add new slot
@@ -258,9 +179,9 @@ async function addSlot(date: string, bowl: string) {
   await saveEntry(date, bowl, startTime, endTime, defaultEventId.value)
 }
 
-// Handle delete - if last entry, reset shows defaults automatically
-async function handleDelete(date: string, bowl: string, slot: any) {
-  if (!isDefaultSlot(slot) && slot.id) {
+// Handle delete
+async function handleDelete(slot: ScheduleEntry) {
+  if (slot.id) {
     await deleteEntry(slot.id)
   }
 }
@@ -285,7 +206,7 @@ function toggleLock(bowl: string) {
 
 async function resetWeek(bowl: string) {
   if (isWeekLocked(bowl)) return
-  if (!confirm(`Reset all ${bowl} bowl entries for this week? This will restore default time slots.`)) return
+  if (!confirm(`Delete all ${bowl} bowl entries for this week?`)) return
 
   try {
     await $fetch('/api/admin/schedule/reset', {
@@ -300,30 +221,6 @@ async function resetWeek(bowl: string) {
   } catch (err) {
     console.error('Failed to reset week:', err)
     alert('Failed to reset week')
-  }
-}
-
-async function populateWeek(bowl: string) {
-  if (isWeekLocked(bowl)) return
-
-  try {
-    const result = await $fetch('/api/admin/schedule/populate', {
-      method: 'POST',
-      body: {
-        bowl,
-        startDate: weekDates.value[0],
-        endDate: weekDates.value[4],
-      },
-    })
-    await refreshSchedule()
-    if (result.created > 0) {
-      alert(`Populated ${result.created} slots with default event`)
-    } else {
-      alert('All slots already have entries')
-    }
-  } catch (err) {
-    console.error('Failed to populate week:', err)
-    alert('Failed to populate week')
   }
 }
 
@@ -354,7 +251,7 @@ function getMaxSlotsForBowl(bowl: string): number {
     const slots = getSlotsForDateAndBowl(date, bowl)
     if (slots.length > max) max = slots.length
   }
-  return Math.max(max, 4) // At least 4 rows
+  return max
 }
 
 // Format creator/updater info for display
@@ -444,14 +341,6 @@ const smallSelectStyle = computed(() => `
             {{ isWeekLocked(bowl) ? '🔒' : '🔓' }}
           </button>
           <button
-            @click="populateWeek(bowl)"
-            :disabled="isWeekLocked(bowl)"
-            class="populate-btn"
-            :class="{ disabled: isWeekLocked(bowl) }"
-          >
-            Populate
-          </button>
-          <button
             @click="resetWeek(bowl)"
             :disabled="isWeekLocked(bowl)"
             class="reset-btn"
@@ -484,12 +373,10 @@ const smallSelectStyle = computed(() => `
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '0.2rem',
-                      opacity: isDefaultSlot(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1]) ? 0.6 : 1,
-                      background: isDefaultSlot(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1]) ? (isDark ? '#1a1a1a' : '#f5f5f5') : 'transparent',
                       padding: '0.25rem',
                       borderRadius: '4px',
                     }"
-                    :title="!isDefaultSlot(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1]) ? [getCreatorInfo(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1] as ScheduleEntry), getUpdaterInfo(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1] as ScheduleEntry)].filter(Boolean).join('\n') : ''"
+                    :title="[getCreatorInfo(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1]), getUpdaterInfo(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1])].filter(Boolean).join('\n')"
                   >
                     <!-- Time row: Start - End -->
                     <div style="display: flex; gap: 0.2rem; align-items: center;">
@@ -514,7 +401,7 @@ const smallSelectStyle = computed(() => `
                     <!-- Event + Delete row -->
                     <div style="display: flex; gap: 0.2rem; align-items: center;">
                       <select
-                        :value="isDefaultSlot(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1]) ? defaultEventId : getSlotsForDateAndBowl(date, bowl)[rowIdx - 1].eventId"
+                        :value="getSlotsForDateAndBowl(date, bowl)[rowIdx - 1].eventId"
                         @change="handleEventChange(date, bowl, getSlotsForDateAndBowl(date, bowl)[rowIdx - 1], parseInt(($event.target as HTMLSelectElement).value))"
                         :disabled="isWeekLocked(bowl)"
                         :style="selectStyle"
@@ -523,8 +410,7 @@ const smallSelectStyle = computed(() => `
                         <option v-for="evt in eventsList" :key="evt.id" :value="evt.id">{{ evt.name }}</option>
                       </select>
                       <button
-                        v-if="!isDefaultSlot(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1])"
-                        @click="handleDelete(date, bowl, getSlotsForDateAndBowl(date, bowl)[rowIdx - 1])"
+                        @click="handleDelete(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1])"
                         :disabled="isWeekLocked(bowl)"
                         class="delete-btn"
                         title="Delete slot"
@@ -532,23 +418,16 @@ const smallSelectStyle = computed(() => `
                     </div>
                     <!-- Creator info -->
                     <div
-                      v-if="!isDefaultSlot(getSlotsForDateAndBowl(date, bowl)[rowIdx - 1]) && (getSlotsForDateAndBowl(date, bowl)[rowIdx - 1] as ScheduleEntry).createdBy"
+                      v-if="getSlotsForDateAndBowl(date, bowl)[rowIdx - 1].createdBy"
                       :style="{ fontSize: '0.55rem', color: isDark ? '#555' : '#999', textAlign: 'center', marginTop: '0.1rem' }"
                     >
-                      {{ (getSlotsForDateAndBowl(date, bowl)[rowIdx - 1] as ScheduleEntry).createdByName || (getSlotsForDateAndBowl(date, bowl)[rowIdx - 1] as ScheduleEntry).createdByUsername }}
+                      {{ getSlotsForDateAndBowl(date, bowl)[rowIdx - 1].createdByName || getSlotsForDateAndBowl(date, bowl)[rowIdx - 1].createdByUsername }}
                     </div>
                   </div>
                 </template>
-                <!-- Empty cell / Add button -->
+                <!-- Empty cell -->
                 <div v-else style="display: flex; justify-content: center; padding: 0.5rem;">
-                  <button
-                    v-if="rowIdx === getSlotsForDateAndBowl(date, bowl).length + 1"
-                    @click="addSlot(date, bowl)"
-                    :disabled="isWeekLocked(bowl)"
-                    class="add-btn"
-                    title="Add slot"
-                  >+</button>
-                  <span v-else :style="{ color: isDark ? '#333' : '#ddd' }">-</span>
+                  <span :style="{ color: isDark ? '#333' : '#ddd' }">-</span>
                 </div>
               </td>
             </tr>
@@ -607,31 +486,6 @@ const smallSelectStyle = computed(() => `
   border-color: #d0232a;
   color: #d0232a;
   box-shadow: 0 0 8px rgba(208, 35, 42, 0.3);
-}
-
-.populate-btn {
-  padding: 0.375rem 0.75rem;
-  background: transparent;
-  border: 1px solid #2a5a2a;
-  color: #71f871;
-  cursor: pointer;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-}
-
-.populate-btn:hover:not(.disabled) {
-  background: rgba(113, 248, 113, 0.1);
-  box-shadow: 0 0 10px rgba(113, 248, 113, 0.2);
-  transform: scale(1.03);
-}
-
-.populate-btn.disabled {
-  border-color: #222;
-  color: #444;
-  cursor: not-allowed;
-  opacity: 0.5;
 }
 
 .reset-btn {

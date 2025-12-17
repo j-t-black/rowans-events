@@ -1,6 +1,9 @@
 import { db, events } from '~~/server/database/db'
 
 export default defineEventHandler(async (event) => {
+  const session = await getUserSession(event)
+  const userId = session.user?.id
+
   const body = await readBody(event)
   const { name, description, color, isActive, isDefault } = body
 
@@ -19,6 +22,8 @@ export default defineEventHandler(async (event) => {
       color: color || null,
       isActive: isActive ?? true,
       isDefault: isDefault ?? false,
+      createdBy: userId,
+      updatedBy: userId,
     })
     .returning()
 

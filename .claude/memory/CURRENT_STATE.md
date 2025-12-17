@@ -1,8 +1,8 @@
-# Rowans DJs - Complete Implementation Guide
+# Rowans Events - Complete Implementation Guide
 
-**Last Updated:** December 10, 2025
-**Repo:** https://github.com/j-t-black/rowans-rota-v2
-**Live:** https://rowans-djs.vercel.app (or your Vercel URL)
+**Last Updated:** December 16, 2025
+**Repo:** https://github.com/j-t-black/rowans-events
+**Live:** Check Vercel dashboard
 
 ## Tech Stack
 
@@ -30,7 +30,7 @@ npm run db:studio     # Open Drizzle Studio
 ```
 
 **Environment Variables (set in Vercel):**
-- `TURSO_DATABASE_URL` - libsql://rowans-djs-j-t-black.aws-eu-west-1.turso.io
+- `TURSO_DATABASE_URL` - libsql://rowans-events-j-t-black.aws-eu-west-1.turso.io
 - `TURSO_AUTH_TOKEN` - Turso auth token
 - `NUXT_SESSION_PASSWORD` - 32+ char session secret
 - `ADMIN_USERNAME` - Admin username
@@ -40,7 +40,7 @@ npm run db:studio     # Open Drizzle Studio
 
 ## Application Purpose
 
-DJ schedule management for Rowans venue. The week runs **Wednesday to Sunday** with different time slots per day and per bowl (Upper/Lower).
+Event schedule management for Rowans venue. The week runs **Wednesday to Sunday** with different time slots per day and per bowl (Upper/Lower).
 
 ---
 
@@ -130,15 +130,21 @@ Time slots are now stored directly with `start_time` and `end_time` fields, allo
 - Week navigation (Prev/Next buttons)
 - Grid layout: 5 columns × dynamic rows per bowl
 - Dropdowns filter to valid times for each day/bowl/slot
-- Default DJ auto-selected
+- Default event auto-selected
 - Real-time save on selection change
 - Lock & Reset per bowl
-- Populate button (fills week with default DJs)
+- Populate button (fills week with default events)
+- User tracking: shows who created/updated each entry
 
-### 6. DJ Management (`app/pages/admin/djs.vue`)
-- CRUD for DJs
-- Fields: name, email, instagram, whatsapp, avatar, isActive, isDefault
+### 6. Events Management (`app/pages/admin/events.vue`)
+- CRUD for Events
+- Fields: name, description, color, isActive, isDefault
 - Modal form for create/edit
+
+### 7. User Management (`app/pages/admin/users.vue`)
+- CRUD for admin users
+- Fields: username, displayName, password, role, isActive
+- User tracking on schedule entries
 
 ---
 
@@ -164,8 +170,9 @@ app/
     login.vue              # Login form
     admin/
       index.vue            # Schedule editor
-      djs.vue              # DJ CRUD
-      time-slots.vue       # Time slot CRUD
+      events.vue           # Events CRUD
+      users.vue            # Users CRUD
+      time-slots.vue       # Time slot CRUD (legacy)
   layouts/
     admin.vue              # Admin navigation layout
   composables/
@@ -177,12 +184,13 @@ server/
   api/
     auth/                  # Login/logout/session
     admin/                 # Protected admin endpoints
-      djs/                 # DJ CRUD
+      events/              # Events CRUD
+      users/               # Users CRUD
       schedule/            # Schedule CRUD + populate + reset
       export/[bowl].get.ts # PDF export
     export/[bowl].get.ts   # Public PDF export
     schedule.get.ts        # Public schedule endpoint
-    djs.get.ts             # Public DJs list
+    events.get.ts          # Public events list
   database/
     schema.ts              # Drizzle schema
     db.ts                  # Turso/libSQL connection
@@ -196,7 +204,7 @@ server/
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | /api/schedule | No | Public schedule for date range |
-| GET | /api/djs | No | Active DJs |
+| GET | /api/events | No | Active events |
 | GET | /api/export/:bowl | No | Public PDF download |
 | POST | /api/auth/login | No | Login |
 | POST | /api/auth/logout | Yes | Logout |
@@ -205,40 +213,24 @@ server/
 | POST | /api/admin/schedule | Yes | Create/update entry |
 | POST | /api/admin/schedule/reset | Yes | Reset bowl for week |
 | POST | /api/admin/schedule/populate | Yes | Fill week with defaults |
-| GET | /api/admin/djs | Yes | All DJs |
-| POST/PUT/DELETE | /api/admin/djs | Yes | DJ CRUD |
+| GET | /api/admin/events | Yes | All events |
+| POST/PUT/DELETE | /api/admin/events | Yes | Events CRUD |
+| GET | /api/admin/users | Yes | All users |
+| POST/PUT/DELETE | /api/admin/users | Yes | Users CRUD |
 | GET | /api/admin/export/:bowl | Yes | Admin PDF download |
 
 ---
 
-## Database (Turso Cloud)
+## Database Schema (Turso Cloud)
+
+**Tables:**
+- `events` - Events available for selection (name, description, color, isActive, isDefault)
+- `schedule_entries` - Schedule data (date, bowl, startTime, endTime, eventId, createdBy, updatedBy)
+- `users` - Admin users (username, displayName, passwordHash, role, isActive)
+- `time_slots` - Legacy time slots (may be removed)
+- `settings` - App settings key-value store
 
 All database operations are async. API routes use `await` with Drizzle queries.
-
-**Update admin password:**
-```bash
-npx tsx -e "
-import 'dotenv/config'
-import { drizzle } from 'drizzle-orm/libsql'
-import { createClient } from '@libsql/client'
-import { users } from './server/database/schema.ts'
-import { eq } from 'drizzle-orm'
-import bcrypt from 'bcryptjs'
-
-const client = createClient({
-  url: process.env.TURSO_DATABASE_URL,
-  authToken: process.env.TURSO_AUTH_TOKEN,
-})
-const db = drizzle(client)
-
-async function update() {
-  const hash = await bcrypt.hash('NEW_PASSWORD', 10)
-  await db.update(users).set({ username: 'NEW_USERNAME', passwordHash: hash }).where(eq(users.username, 'OLD_USERNAME'))
-  console.log('Updated!')
-}
-update()
-"
-```
 
 ---
 

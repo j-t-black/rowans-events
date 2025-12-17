@@ -11,6 +11,14 @@ interface Event {
   color: string | null
   isActive: boolean
   isDefault: boolean
+  createdBy: number | null
+  createdByName: string | null
+  createdByUsername: string | null
+  updatedBy: number | null
+  updatedByName: string | null
+  updatedByUsername: string | null
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 const { data: eventsList, refresh } = await useFetch<Event[]>('/api/admin/events')
@@ -91,6 +99,12 @@ async function handleDelete(evt: Event) {
   }
 }
 
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
 </script>
 
 <template>
@@ -153,9 +167,22 @@ async function handleDelete(evt: Event) {
     <!-- Modal -->
     <div v-if="showModal" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 50;">
       <div style="background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 1.5rem; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
-        <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">
           {{ editingEvent ? 'Edit' : 'Add' }} Event
         </h3>
+
+        <!-- Created/Updated info when editing -->
+        <div v-if="editingEvent" style="font-size: 0.75rem; color: #666; margin-bottom: 1.5rem;">
+          <div v-if="editingEvent.createdAt">
+            Created: {{ formatDate(editingEvent.createdAt) }}
+            <span v-if="editingEvent.createdByName || editingEvent.createdByUsername"> by {{ editingEvent.createdByName || editingEvent.createdByUsername }}</span>
+          </div>
+          <div v-if="editingEvent.updatedAt && editingEvent.updatedAt !== editingEvent.createdAt">
+            Updated: {{ formatDate(editingEvent.updatedAt) }}
+            <span v-if="editingEvent.updatedByName || editingEvent.updatedByUsername"> by {{ editingEvent.updatedByName || editingEvent.updatedByUsername }}</span>
+          </div>
+        </div>
+        <div v-else style="margin-bottom: 1rem;"></div>
 
         <div v-if="error" style="padding: 0.75rem; background: #3a1a1a; border: 1px solid #5a2a2a; color: #f87171; border-radius: 4px; margin-bottom: 1rem;">
           {{ error }}

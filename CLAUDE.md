@@ -1,4 +1,4 @@
-# Rowans Rota v2
+# Rowans Events
 
 **Read `.claude/memory/CURRENT_STATE.md` for complete implementation details.**
 
@@ -17,7 +17,7 @@ npm run dev  # http://localhost:3001/
 Login: pickled / pepper
 
 ## Purpose
-DJ schedule management for Rowans venue. Week runs Wed→Sun with different time slots per day and bowl.
+Event schedule management for Rowans venue. Week runs Wed→Sun with different time slots per day and bowl.
 
 ## Schedule Slots
 

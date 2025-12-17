@@ -24,9 +24,9 @@ export default defineNuxtConfig({
   // App head configuration
   app: {
     head: {
-      title: 'Rowans Rota',
+      title: 'Rowans Events',
       meta: [
-        { name: 'description', content: 'DJ Schedule Management' },
+        { name: 'description', content: 'Event Schedule Management' },
         { name: 'theme-color', content: '#1a1a1a' },
       ],
       link: [

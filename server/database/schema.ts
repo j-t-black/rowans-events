@@ -18,6 +18,8 @@ export const events = sqliteTable('events', {
   color: text('color'), // Optional color for display
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   isDefault: integer('is_default', { mode: 'boolean' }).default(false),
+  createdBy: integer('created_by').references(() => users.id),
+  updatedBy: integer('updated_by').references(() => users.id),
   createdAt: text('created_at').default('CURRENT_TIMESTAMP'),
   updatedAt: text('updated_at').default('CURRENT_TIMESTAMP'),
 })

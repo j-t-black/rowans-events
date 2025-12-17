@@ -1,4 +1,4 @@
-# Architectural Decisions
+# Rowans Events - Architectural Decisions
 
 ## ADR-001: Start Fresh vs Migrate
 **Decision**: Start fresh with new Nuxt 4 project
@@ -10,13 +10,13 @@
 - Old code serves as reference only
 
 ## ADR-002: Database Choice
-**Decision**: SQLite with Drizzle ORM
+**Decision**: Turso (cloud SQLite) with Drizzle ORM
 **Rationale**:
-- Simple deployment (single file)
-- No external database server needed
+- Cloud-hosted, no local database needed
+- Works seamlessly with Vercel deployment
 - Drizzle provides type-safe queries
 - Easy migrations
-- Sufficient for single-venue scheduling app
+- Free tier sufficient for single-venue scheduling app
 
 ## ADR-003: PDF Generation
 **Decision**: Server-side with PDFKit (light mode only)
@@ -28,7 +28,6 @@
 
 ## ADR-004: JPG Export
 **Decision**: Client-side with html2canvas
-**Date**: December 9, 2024
 **Rationale**:
 - No server dependencies for image generation
 - Captures user's current theme (dark/light)
@@ -42,7 +41,7 @@
 - Simple username/password for admin
 - Session-based (no JWT complexity)
 - Built for Nuxt/Nitro
-- Single admin user sufficient for this use case
+- Multiple admin users supported
 
 ## ADR-006: UI Framework
 **Decision**: Nuxt UI 4 with inline styles for theming
@@ -58,11 +57,10 @@
 - User preference
 - Good readability for schedules/times
 - Modern aesthetic
-- Self-hosted for reliability
+- Google Fonts for reliability
 
 ## ADR-008: Theme System
 **Decision**: Dark/light mode toggle with localStorage persistence
-**Date**: December 2024
 **Rationale**:
 - User preference for both options
 - PDF exports use light mode only (for printing)
@@ -77,7 +75,6 @@
 
 ## ADR-010: Mobile Navigation
 **Decision**: Swipe-based day navigation with full-page touch detection
-**Date**: December 9, 2024
 **Rationale**:
 - Natural mobile UX pattern (like carousel)
 - Single day view avoids cramped grid
@@ -89,7 +86,6 @@
 
 ## ADR-011: Mobile Breakpoint
 **Decision**: 768px breakpoint for mobile/desktop switch
-**Date**: December 9, 2024
 **Rationale**:
 - Standard tablet breakpoint
 - Below 768px: single-day swipe view
@@ -97,9 +93,28 @@
 - JavaScript-based detection (not CSS-only) for template switching
 
 ## ADR-012: Branding
-**Decision**: "Rowans DJs" as site name
-**Date**: December 9, 2024
+**Decision**: "Rowans Events" as site name
+**Date**: December 2025
 **Rationale**:
-- Cleaner than "Rowans Rota"
-- Week title format: "Rowans DJs : Week Starting [date]"
+- More flexible than "Rowans DJs"
+- Allows for non-DJ events
+- Week title format: "Rowans Events : Week Starting [date]"
 - Logo is theme-aware (black in light mode, white in dark mode)
+
+## ADR-013: Events vs DJs
+**Decision**: Renamed from DJs to Events
+**Date**: December 2025
+**Rationale**:
+- More flexible terminology
+- Events table has: name, description, color, isActive, isDefault
+- Allows for special nights, closures, non-DJ events
+- Color field for future visual differentiation
+
+## ADR-014: User Tracking
+**Decision**: Track who creates/updates schedule entries
+**Date**: December 2025
+**Rationale**:
+- Accountability for schedule changes
+- created_by and updated_by fields on schedule_entries
+- Display creator name in admin schedule grid
+- Users table supports multiple admin accounts
