@@ -131,10 +131,10 @@ function getSlotsForDateAndBowl(date: string, bowl: string): ScheduleEntry[] {
 }
 
 // Create or update entry
-async function saveEntry(date: string, bowl: string, startTime: string, endTime: string, eventId: number | null) {
+async function saveEntry(date: string, bowl: string, startTime: string, endTime: string, eventId: number | null, id?: number) {
   await $fetch('/api/admin/schedule', {
     method: 'POST',
-    body: { date, bowl, startTime, endTime, eventId },
+    body: { id, date, bowl, startTime, endTime, eventId },
   })
   await refreshSchedule()
 }
@@ -149,12 +149,12 @@ async function deleteEntry(id: number) {
 async function handleTimeChange(date: string, bowl: string, slot: ScheduleEntry, field: 'startTime' | 'endTime', value: string) {
   const startTime = field === 'startTime' ? value : slot.startTime
   const endTime = field === 'endTime' ? value : slot.endTime
-  await saveEntry(date, bowl, startTime, endTime, slot.eventId)
+  await saveEntry(date, bowl, startTime, endTime, slot.eventId, slot.id)
 }
 
 // Handle Event change
 async function handleEventChange(date: string, bowl: string, slot: ScheduleEntry, eventId: number | null) {
-  await saveEntry(date, bowl, slot.startTime, slot.endTime, eventId)
+  await saveEntry(date, bowl, slot.startTime, slot.endTime, eventId, slot.id)
 }
 
 // Add new slot

@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   const userId = session.user?.id
 
   const body = await readBody(event)
-  const { date, bowl, startTime, endTime, eventId } = body
+  const { id, date, bowl, startTime, endTime, eventId } = body
 
   if (!date || !bowl || !startTime || !endTime) {
     throw createError({
@@ -15,17 +15,27 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  // Check if entry exists for this date/bowl/startTime
-  const [existing] = await db
-    .select()
-    .from(scheduleEntries)
-    .where(
-      and(
-        eq(scheduleEntries.date, date),
-        eq(scheduleEntries.bowl, bowl),
-        eq(scheduleEntries.startTime, startTime)
+  // Check if entry exists - by ID first, then by date/bowl/startTime
+  let existing
+  if (id) {
+    const [byId] = await db
+      .select()
+      .from(scheduleEntries)
+      .where(eq(scheduleEntries.id, id))
+    existing = byId
+  } else {
+    const [byFields] = await db
+      .select()
+      .from(scheduleEntries)
+      .where(
+        and(
+          eq(scheduleEntries.date, date),
+          eq(scheduleEntries.bowl, bowl),
+          eq(scheduleEntries.startTime, startTime)
+        )
       )
-    )
+    existing = byFields
+  }
 
   let result
   if (existing) {
