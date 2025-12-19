@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   const userId = session.user?.id
 
   const body = await readBody(event)
-  const { name, description, color, isActive, isDefault } = body
+  const { name, description, color, contactName, contactPhone, contactEmail, socialMedia, website, isActive, isDefault } = body
 
   if (!name) {
     throw createError({
@@ -21,6 +21,11 @@ export default defineEventHandler(async (event) => {
       name,
       description: description || null,
       color: color || null,
+      contactName: contactName || null,
+      contactPhone: contactPhone || null,
+      contactEmail: contactEmail || null,
+      socialMedia: socialMedia || null,
+      website: website || null,
       isActive: isActive ?? true,
       isDefault: isDefault ?? false,
       createdBy: userId,

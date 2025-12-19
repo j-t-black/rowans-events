@@ -9,6 +9,11 @@ interface Event {
   name: string
   description: string | null
   color: string | null
+  contactName: string | null
+  contactPhone: string | null
+  contactEmail: string | null
+  socialMedia: string | null
+  website: string | null
   isActive: boolean
   isDefault: boolean
   createdBy: number | null
@@ -29,6 +34,11 @@ const form = ref({
   name: '',
   description: '',
   color: '',
+  contactName: '',
+  contactPhone: '',
+  contactEmail: '',
+  socialMedia: '',
+  website: '',
   isActive: true,
   isDefault: false,
 })
@@ -37,7 +47,7 @@ const success = ref('')
 
 function openCreate() {
   editingEvent.value = null
-  form.value = { name: '', description: '', color: '', isActive: true, isDefault: false }
+  form.value = { name: '', description: '', color: '', contactName: '', contactPhone: '', contactEmail: '', socialMedia: '', website: '', isActive: true, isDefault: false }
   error.value = ''
   showModal.value = true
 }
@@ -48,6 +58,11 @@ function openEdit(evt: Event) {
     name: evt.name,
     description: evt.description || '',
     color: evt.color || '',
+    contactName: evt.contactName || '',
+    contactPhone: evt.contactPhone || '',
+    contactEmail: evt.contactEmail || '',
+    socialMedia: evt.socialMedia || '',
+    website: evt.website || '',
     isActive: evt.isActive,
     isDefault: evt.isDefault
   }
@@ -204,6 +219,38 @@ function formatDate(dateStr: string | null): string {
             <div style="display: flex; gap: 0.5rem; align-items: center;">
               <input v-model="form.color" type="color" style="width: 40px; height: 32px; padding: 0; border: 1px solid #333; border-radius: 4px; cursor: pointer;" />
               <input v-model="form.color" placeholder="#d0232a" class="form-input" style="flex: 1;" />
+            </div>
+          </div>
+
+          <!-- Contact Information -->
+          <div style="border-top: 1px solid #333; margin: 1rem 0; padding-top: 1rem;">
+            <div style="font-size: 0.75rem; color: #666; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">Contact Information</div>
+
+            <div class="form-group">
+              <label class="form-label">Contact Name</label>
+              <input v-model="form.contactName" placeholder="John Smith" class="form-input" />
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label class="form-label">Phone</label>
+                <input v-model="form.contactPhone" placeholder="+44 7123 456789" class="form-input" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input v-model="form.contactEmail" type="email" placeholder="contact@example.com" class="form-input" />
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+              <div class="form-group">
+                <label class="form-label">Social Media</label>
+                <input v-model="form.socialMedia" placeholder="@instagram" class="form-input" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Website</label>
+                <input v-model="form.website" type="url" placeholder="https://example.com" class="form-input" />
+              </div>
             </div>
           </div>
 

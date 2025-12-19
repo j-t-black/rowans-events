@@ -16,6 +16,11 @@ export const events = sqliteTable('events', {
   name: text('name').notNull().unique(),
   description: text('description'),
   color: text('color'), // Optional color for display
+  contactName: text('contact_name'),
+  contactPhone: text('contact_phone'),
+  contactEmail: text('contact_email'),
+  socialMedia: text('social_media'),
+  website: text('website'),
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   isDefault: integer('is_default', { mode: 'boolean' }).default(false),
   createdBy: integer('created_by').references(() => users.id),
